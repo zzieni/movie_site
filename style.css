@@ -28,7 +28,12 @@
   text-shadow: none;
 }
 
-#bookMark {
+.bookMark {
+  color: white;
+  text-align: center;
+  margin: 1%;
+}
+.goBack {
   color: white;
   text-align: center;
   margin: 1%;
@@ -99,7 +104,19 @@
   float: right;
 }
 
-.modal .modal_popup #book_mark_btn {
+.modal .modal_popup #book_mark_del_btn {
+  display: block;
+  padding: 10px 20px;
+  background-color: rgb(65, 145, 192);
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  float: left;
+}
+
+.modal .modal_popup #book_mark_save_btn {
   display: block;
   padding: 10px 20px;
   background-color: rgb(65, 145, 192);

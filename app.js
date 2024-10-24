@@ -15,10 +15,11 @@ const SERCH_URL = BASE_URL + 'search/movie?' + API_KEY;
 
 const main = document.querySelector('.cardList');
 const cardList = document.querySelector('.card-list');
-// const card = document.querySelector('.card');
 const from = document.getElementById('serchFrom');
 const moveSerchInput = document.getElementById('serchInput');
-const sohwBookMark = document.getElementById('bookMark');
+const sohwBookMark = document.querySelector('.bookMark');
+const goBack = document.querySelector('.goBack');
+const modal = document.querySelector('.modal-list');
 
 /**
  * TMDB API 연동
@@ -52,20 +53,12 @@ getMovies(API_URL);
 /**
  * 영화 카드
  */
+
 function showMovies(data) {
   cardList.innerHTML = '';
-  console.log(data.id);
-
   data.forEach((e) => {
-    const {
-      title,
-      poster_path,
-      vote_average,
-      id,
-      overview,
-      release_date,
-      backdrop_path,
-    } = e;
+    const { title, poster_path, vote_average, id } = e;
+
     const card = document.createElement('div'); // <div><div/> 생성
     card.className = 'card'; // 위에 만든 div태그에 클래스 이름 넣어줌 부여함 -> <div class="card"><div/>
     card.id = `${id}`;
@@ -79,83 +72,116 @@ function showMovies(data) {
     cardList.appendChild(card); // cardList의 자식으로 card 넣어준다.
   });
 
+  /**
+   * 영화 검색 기능
+   */
+  // 검색어 입력 후 검색버튼 클릭 또는 엔터키를 누르면 영화 검색 api를 이용하여 해당하는 영화를 불러온다
+  from.addEventListener('submit', (search) => {
+    search.preventDefault(); // submit 시 새로고침 방지
+
+    const serchKeyWorld = moveSerchInput.value;
+
+    getMovies(SERCH_URL + '&query=' + serchKeyWorld);
+  });
+
   // 상세 정보 모달
   cardList.addEventListener('click', (event) => {
     if (event.target === event.currentTarget) return;
-    console.log('event.target', event.target);
-    console.log('event.currentTarget', event.currentTarget);
 
     const movieId = event.target.closest('.card').id;
     const movie = data.find((movie) => {
       return movie.id === Number(movieId);
     });
-    const modal = document.createElement('div');
-    modal.classList.add('modal');
 
-    modal.innerHTML = `
-      <div class="modal_popup">
-        <img id="movie-post-img" src='${IMG_URL + movie.poster_path}'/>
-        <h1>${movie.title}</h1>
-        <p>${movie.overview}</p>
-        <p>개봉일 : ${movie.release_date}</p>
-        <button id="close_btn">닫기</button>
-        <button id="book_mark_btn" data-action="save">북마크 추가</button>
-      </div>
+    modal.classList.remove('hide');
+    modal.style.display = '';
+
+    const modalHtml = `
+      <div class="modal">
+        <div class="modal_popup">
+          <img id="movie-post-img" src='${IMG_URL + movie.poster_path}'/>
+          <h1>${movie.title}</h1>
+          <p>${movie.overview}</p>
+          <p>개봉일 : ${movie.release_date}</p>
+          <button id="close_btn">닫기</button>
+          <button id="book_mark_save_btn" data-action="save">북마크 추가</button>
+          <button id="book_mark_del_btn" data-action="save">북마크 삭제</button>
+        </div>
+      </div>  
     `;
+    modal.innerHTML = modalHtml;
 
     // 닫기
     const closeBtn = modal.querySelector('#close_btn');
     closeBtn.addEventListener('click', () => {
       modal.style.display = 'none';
+      modal.classList.add('hide');
     });
 
-    // 북마크
-    const bookMarkBtn = modal.querySelector('#book_mark_btn');
+    // 북마크 추가
+    const bookMarkBtn = modal.querySelector('#book_mark_save_btn');
     bookMarkBtn.addEventListener('click', (e) => {
-      console.log('북마크 추가 버튼 클릭!', e);
+      saveLocalStorage(movie);
+      modal.style.display = 'none';
+      modal.classList.add('hide');
     });
 
-    cardList.after(modal);
+    // 북마크 삭제
+    const bookMarkDelBtn = modal.querySelector('#book_mark_del_btn');
+    bookMarkDelBtn.addEventListener('click', (e) => {
+      deleteLocalStorage(movie.id);
+      modal.style.display = 'none';
+      modal.classList.add('hide');
+    });
   });
 }
 
 /**
- * 영화 검색 기능
- */
-// 검색어 입력 후 검색버튼 클릭 또는 엔터키를 누르면 영화 검색 api를 이용하여 해당하는 영화를 불러온다
-from.addEventListener('submit', (search) => {
-  search.preventDefault(); // submit 시 새로고침 방지
-
-  const serchKeyWorld = moveSerchInput.value;
-
-  getMovies(SERCH_URL + '&query=' + serchKeyWorld);
-});
-
-/**
  *  북마크 보기
  */
-sohwBookMark.addEventListener('click', () => {
-  const modal = document.createElement('div');
-  modal.classList.add('modal');
-
-  modal.innerHTML = `
-        <div class="modal_popup">
-          <img src=''/>
-          <p class='title'></p>
-          <button id="close_btn" >닫기</button>
-          <button id="book_mark_btn" data-action="delelt">삭제</button>
-        </div>
-      `;
-
-  // 닫기
-  const closeBtn = modal.querySelector('#close_btn');
-  closeBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
-
-  // // 북마크
-  const bookMarkBtn = modal.querySelector('#book_mark_btn');
-  bookMarkBtn.addEventListener('click', () => {});
-
-  cardList.after(modal);
+sohwBookMark.addEventListener('click', (event) => {
+  const movies = getLocalStorage();
+  showMovies(movies);
 });
+
+/** 뒤로가기 */
+goBack.addEventListener('click', (event) => {
+  getMovies(API_URL);
+});
+
+function getLocalStorage() {
+  let movies = localStorage.getItem('movies');
+
+  if (movies) {
+    return JSON.parse(movies);
+  } else {
+    return [];
+  }
+}
+
+function saveLocalStorage(movie) {
+  let movies = getLocalStorage(); // 겟리뷰에서 함수 호출
+  const exists = movies.some((existingMovie) => existingMovie.id === movie.id); // id를 기준으로 체크
+
+  if (!exists) {
+    movies.push(movie);
+    localStorage.setItem('movies', JSON.stringify(movies));
+    alert('북마크에 추가되었습니다.');
+  } else {
+    alert('이미 북마크에 추가된 영화입니다.');
+  }
+}
+
+function deleteLocalStorage(movieId) {
+  let movies = getLocalStorage();
+  const exists = movies.some((existingMovie) => existingMovie.id === movieId); // id를 기준으로 체크
+
+  if (exists) {
+    movies = movies.filter((movie) => movie.id !== movieId);
+    localStorage.setItem('movies', JSON.stringify(movies));
+    alert('북마크에 삭제 되었습니다.');
+    showMovies(movies);
+  } else {
+    alert('북마크에 추가되지 않았습니다. 추가 후 삭제 해주시기 바랍니다.');
+  }
+}
