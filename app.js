@@ -1,3 +1,9 @@
+import {
+  getLocalStorage,
+  saveLocalStorage,
+  deleteLocalStorage,
+} from './localStorage.js';
+
 // api_key
 const API_KEY = 'api_key=801b921dd3005ae0f5f5340fd6e3924e';
 
@@ -13,11 +19,10 @@ const IMG_URL = 'https://media.themoviedb.org/t/p/w220_and_h330_face';
 // 검색 URL
 const SERCH_URL = BASE_URL + 'search/movie?' + API_KEY;
 
-const main = document.querySelector('.cardList');
 const cardList = document.querySelector('.card-list');
 const from = document.getElementById('serchFrom');
 const moveSerchInput = document.getElementById('serchInput');
-const sohwBookMark = document.querySelector('.bookMark');
+const showBookMark = document.querySelector('.bookMark');
 const goBack = document.querySelector('.goBack');
 const modal = document.querySelector('.modal-list');
 
@@ -53,7 +58,6 @@ getMovies(API_URL);
 /**
  * 영화 카드
  */
-
 function showMovies(data) {
   cardList.innerHTML = '';
   data.forEach((e) => {
@@ -66,7 +70,7 @@ function showMovies(data) {
     card.innerHTML = `
         <img src='${IMG_URL + poster_path}'/>
         <h4 id='movie-title'>${title}</h4>
-        <p id='vote_average'>평점 : ${vote_average}</p>
+        <p id='vote-average'>평점 : ${vote_average}</p>
         `;
 
     cardList.appendChild(card); // cardList의 자식으로 card 넣어준다.
@@ -103,23 +107,23 @@ function showMovies(data) {
           <h1>${movie.title}</h1>
           <p>${movie.overview}</p>
           <p>개봉일 : ${movie.release_date}</p>
-          <button id="close_btn">닫기</button>
-          <button id="book_mark_save_btn" data-action="save">북마크 추가</button>
-          <button id="book_mark_del_btn" data-action="save">북마크 삭제</button>
+          <button id="close-btn">닫기</button>
+          <button id="book-mark-save-btn" data-action="save">북마크 추가</button>
+          <button id="book-mark-del-btn" data-action="save">북마크 삭제</button>
         </div>
       </div>  
     `;
     modal.innerHTML = modalHtml;
 
     // 닫기
-    const closeBtn = modal.querySelector('#close_btn');
+    const closeBtn = modal.querySelector('#close-btn');
     closeBtn.addEventListener('click', () => {
       modal.style.display = 'none';
       modal.classList.add('hide');
     });
 
     // 북마크 추가
-    const bookMarkBtn = modal.querySelector('#book_mark_save_btn');
+    const bookMarkBtn = modal.querySelector('#book-mark-save-btn');
     bookMarkBtn.addEventListener('click', (e) => {
       saveLocalStorage(movie);
       modal.style.display = 'none';
@@ -127,7 +131,7 @@ function showMovies(data) {
     });
 
     // 북마크 삭제
-    const bookMarkDelBtn = modal.querySelector('#book_mark_del_btn');
+    const bookMarkDelBtn = modal.querySelector('#book-mark-del-btn');
     bookMarkDelBtn.addEventListener('click', (e) => {
       deleteLocalStorage(movie.id);
       modal.style.display = 'none';
@@ -139,7 +143,7 @@ function showMovies(data) {
 /**
  *  북마크 보기
  */
-sohwBookMark.addEventListener('click', (event) => {
+showBookMark.addEventListener('click', (event) => {
   const movies = getLocalStorage();
   showMovies(movies);
 });
@@ -148,40 +152,3 @@ sohwBookMark.addEventListener('click', (event) => {
 goBack.addEventListener('click', (event) => {
   getMovies(API_URL);
 });
-
-function getLocalStorage() {
-  let movies = localStorage.getItem('movies');
-
-  if (movies) {
-    return JSON.parse(movies);
-  } else {
-    return [];
-  }
-}
-
-function saveLocalStorage(movie) {
-  let movies = getLocalStorage(); // 겟리뷰에서 함수 호출
-  const exists = movies.some((existingMovie) => existingMovie.id === movie.id); // id를 기준으로 체크
-
-  if (!exists) {
-    movies.push(movie);
-    localStorage.setItem('movies', JSON.stringify(movies));
-    alert('북마크에 추가되었습니다.');
-  } else {
-    alert('이미 북마크에 추가된 영화입니다.');
-  }
-}
-
-function deleteLocalStorage(movieId) {
-  let movies = getLocalStorage();
-  const exists = movies.some((existingMovie) => existingMovie.id === movieId); // id를 기준으로 체크
-
-  if (exists) {
-    movies = movies.filter((movie) => movie.id !== movieId);
-    localStorage.setItem('movies', JSON.stringify(movies));
-    alert('북마크에 삭제 되었습니다.');
-    showMovies(movies);
-  } else {
-    alert('북마크에 추가되지 않았습니다. 추가 후 삭제 해주시기 바랍니다.');
-  }
-}

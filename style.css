@@ -92,7 +92,7 @@
   border-radius: 20px;
 }
 
-.modal .modal_popup #close_btn {
+.modal .modal_popup #close-btn {
   display: block;
   padding: 10px 20px;
   background-color: rgb(136, 19, 19);
@@ -104,7 +104,7 @@
   float: right;
 }
 
-.modal .modal_popup #book_mark_del_btn {
+.modal .modal_popup #book-mark-del-btn {
   display: block;
   padding: 10px 20px;
   background-color: rgb(65, 145, 192);
@@ -116,7 +116,7 @@
   float: left;
 }
 
-.modal .modal_popup #book_mark_save_btn {
+.modal .modal_popup #book-mark-save-btn {
   display: block;
   padding: 10px 20px;
   background-color: rgb(65, 145, 192);
